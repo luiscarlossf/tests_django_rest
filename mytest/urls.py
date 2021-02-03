@@ -23,6 +23,7 @@ router.register(r'users', views.UserViewSet)
 router.register(r'groups', views.GroupViewSet)
 router.register(r'locations', views.LocationViewSet)
 router.register(r'country_codes', views.CountryCodeViewSet)
+router.register(r'connectors', views.ConnectorViewSet)
 
 # Wire up our API using automatic URL routing.
 # Additionally, we include login URLs for the browsable API.

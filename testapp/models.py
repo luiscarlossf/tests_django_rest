@@ -8,6 +8,13 @@ class CountryCode(models.Model):
     def __str__(self):
         return self.code
 
+class Tariff(models.Model):
+    name = models.CharField(max_length=36)
+
+class Connector(models.Model):
+    name = models.CharField(max_length=36)
+    tariffs = models.ManyToManyField(Tariff, blank=True, related_name="connectors")
+
 class Location(models.Model):
     country_code = models.ForeignKey(CountryCode,on_delete=models.CASCADE)
 

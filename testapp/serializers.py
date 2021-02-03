@@ -1,4 +1,14 @@
-from .models import User, Group, Location, CountryCode, ChargePoint
+from .models import (
+    User, 
+    Group, 
+    Location, 
+    CountryCode, 
+    ChargePoint,
+    Connector,
+    Tariff
+)
+
+from django.db import transaction
 from rest_framework import serializers
 
 from .enum_types import CountryList
@@ -72,7 +82,7 @@ class CountryCodeSerializer(serializers.ModelSerializer):
 
 class LocationSerializer(WritableNestedModelSerializer):
     country_code = CountryCodeSerializer(many=False, required=True)
-    groups = GroupSerializer(many=True, required=False)
+    groups = GroupSerializer(many=True)
 
     class Meta:
         model = Location
@@ -105,6 +115,38 @@ class LocationSerializer(WritableNestedModelSerializer):
 
         return location
     
+        
+        
+class ConnectorSerializer(serializers.ModelSerializer):
+    tariff_ids = serializers.ListField( 
+        child=serializers.CharField(), allow_null=True, required=False
+    )
+
+    class Meta:
+        model = Connector
+        fields = ["name", "tariff_ids"]
+    
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+        ret['tariff_ids'] = [ str(tariff.id) for tariff in instance.tariffs.all()]
+        
+        return ret
+
+    @transaction.atomic
+    def save(self, **kwargs):
+        tariff_ids = self.validated_data.pop('tariff_ids')
+
+        connector = super().save(**kwargs)
+        connector.tariffs.clear()
+
+        for tariff_id in tariff_ids:
+            try: # TODO check this when Tariff module to be implemented. 
+                tariff = Tariff.objects.get(id=tariff_id)
+                connector.tariffs.add(tariff)
+            except Tariff.DoesNotExist:
+                pass
+
+        return connector
         
         
 

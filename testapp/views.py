@@ -1,7 +1,13 @@
-from .models import User, Group, Location, CountryCode
+from .models import User, Group, Location, CountryCode, Connector
 from rest_framework import viewsets
 from rest_framework import permissions
-from .serializers import UserSerializer, GroupSerializer, LocationSerializer, CountryCodeSerializer
+from .serializers import (
+    UserSerializer, 
+    GroupSerializer, 
+    LocationSerializer, 
+    CountryCodeSerializer, 
+    ConnectorSerializer
+)
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -35,4 +41,13 @@ class CountryCodeViewSet(viewsets.ModelViewSet):
     """
     queryset = CountryCode.objects.all()
     serializer_class = CountryCodeSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+
+class ConnectorViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint that allows connectors to be viewed or edited.
+    """
+    queryset = Connector.objects.all()
+    serializer_class = ConnectorSerializer
     permission_classes = [permissions.IsAuthenticated]
