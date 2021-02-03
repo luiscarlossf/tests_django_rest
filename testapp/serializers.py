@@ -134,17 +134,28 @@ class ConnectorSerializer(serializers.ModelSerializer):
 
     @transaction.atomic
     def save(self, **kwargs):
-        tariff_ids = self.validated_data.pop('tariff_ids')
+        has_tariff_ids = False
+        is_create = self.instance is None
+
+        if 'tariff_ids' in self.validated_data:
+            has_tariff_ids = True
+
+        tariff_ids = self.validated_data.pop('tariff_ids', None)
 
         connector = super().save(**kwargs)
-        connector.tariffs.clear()
+        #Create
+        #Total Update
+        #Partial Update only if tariff_ids is present in validated_data 
+        if is_create or self.partial is False or has_tariff_ids :
+            connector.tariffs.clear()
 
-        for tariff_id in tariff_ids:
-            try: # TODO check this when Tariff module to be implemented. 
-                tariff = Tariff.objects.get(id=tariff_id)
-                connector.tariffs.add(tariff)
-            except Tariff.DoesNotExist:
-                pass
+        if tariff_ids is not None:
+            for tariff_id in tariff_ids:
+                try: # TODO check this when Tariff module to be implemented. 
+                    tariff = Tariff.objects.get(id=tariff_id)
+                    connector.tariffs.add(tariff)
+                except Tariff.DoesNotExist:
+                    pass
 
         return connector
         
