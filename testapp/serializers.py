@@ -105,7 +105,7 @@ class LocationSerializer(WritableNestedModelSerializer):
         return ret
     
     def save(self, **kwargs):
-        groups = self.validated_data.pop('groups')
+        groups = self.validated_data.pop('groups', None)
         location = super().save(**kwargs)
         if groups is not None:
             for group_data in groups:
