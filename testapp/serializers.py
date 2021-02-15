@@ -5,7 +5,9 @@ from .models import (
     CountryCode, 
     ChargePoint,
     Connector,
-    Tariff
+    Tariff,
+    Place,
+    Restaurant,
 )
 
 from django.db import transaction
@@ -45,6 +47,7 @@ class GroupSerializer(serializers.ModelSerializer):
             group.charge_points.add(charge_point)
         return group 
 
+
 class UserSerializer(WritableNestedModelSerializer):
     groups_ = GroupSerializer(many=True, source="groups")
 
@@ -67,6 +70,7 @@ class UserSerializer(WritableNestedModelSerializer):
         for group in groups:
             Group.objects.get_or_create(name=group) """
 
+
 class CountryCodeSerializer(serializers.ModelSerializer):
 
     code = serializers.CharField(max_length=2)
@@ -79,6 +83,7 @@ class CountryCodeSerializer(serializers.ModelSerializer):
         code = self.validated_data.get('code')
         country_code, created = CountryCode.objects.get_or_create(code=code)
         return country_code 
+
 
 class LocationSerializer(WritableNestedModelSerializer):
     country_code = CountryCodeSerializer(many=False, required=True)
@@ -115,8 +120,7 @@ class LocationSerializer(WritableNestedModelSerializer):
 
         return location
     
-        
-        
+                
 class ConnectorSerializer(serializers.ModelSerializer):
     tariff_ids = serializers.ListField( 
         child=serializers.CharField(), allow_null=True, required=False
@@ -159,6 +163,40 @@ class ConnectorSerializer(serializers.ModelSerializer):
 
         return connector
         
-        
+
+class PlaceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Place
+        fields = ['name', 'address']
+
+class RestaurantSerializer(WritableNestedModelSerializer):
+
+    place_id = PlaceSerializer(source="place")
+
+    class Meta:
+        model = Restaurant
+        fields = ['place_id', 'serves_hot_dogs', 'serves_pizza']
+    
+    def to_internal_value(self, data):
+        place_id = data.get('place_id')
+        if place_id is not None:
+            data['place_id'] = {
+                'id': place_id,
+                'name': 'Luis',
+                'address': 'Rua Raimundo Claro',
+                }
+        data = super().to_internal_value(data)
+        return data
+    
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+        place_id = ret.pop('place_id', None)
+        if place_id is not None:
+            ret['place_id'] = place_id.get('id')
+        return ret
+
+
+
+
 
 
